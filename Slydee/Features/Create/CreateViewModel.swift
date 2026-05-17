@@ -29,8 +29,10 @@ final class CreateViewModel {
             }
         }
 
-        /// Search is disabled in Phase 1 (per spec).
-        var isEnabled: Bool { true }
+        /// Web search needs a Google Programmable Search key/cx, which the app
+        /// no longer collects (single bundled Gemini key only) — kept in the
+        /// model but disabled in the UI so no broken feature ships.
+        var isEnabled: Bool { self != .search }
     }
 
     var step: Step = .input

@@ -1,0 +1,19 @@
+# Secrets — bundled API key, never committed (extractable from binary anyway;
+# use Google AI Studio key restrictions + a server proxy for production).
+Slydee/Secrets.swift
+
+# Xcode / build
+build/
+DerivedData/
+*.xcuserstate
+**/xcuserdata/
+.DS_Store
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
