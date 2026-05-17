@@ -1,17 +1,12 @@
-//
-//  SlydeeApp.swift
-//  Slydee
-//
-//  Created by Mohammed Raad on 17/05/2026.
-//
-
+import SwiftData
 import SwiftUI
 
 @main
 struct SlydeeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
+        .modelContainer(for: [Deck.self, Slide.self, Block.self])
     }
 }
