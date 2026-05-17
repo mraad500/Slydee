@@ -1,6 +1,7 @@
-# Secrets — bundled API key, never committed (extractable from binary anyway;
-# use Google AI Studio key restrictions + a server proxy for production).
-Slydee/Secrets.swift
+# NOTE: Slydee/Secrets.swift is intentionally TRACKED so Xcode Cloud / fresh
+# clones can build. The Gemini key ships in the client binary anyway (it is
+# extractable) — it MUST be restricted in Google AI Studio (API/app limits +
+# quota) and moved behind a server proxy before public scale.
 
 # Xcode / build
 build/
