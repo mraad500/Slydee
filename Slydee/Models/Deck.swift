@@ -10,8 +10,9 @@ final class Deck {
     var language: AppLanguage = AppLanguage.english
     var theme: ThemeID = ThemeID.classic
 
+    // Optional to-many is required for CloudKit sync.
     @Relationship(deleteRule: .cascade, inverse: \Slide.deck)
-    var slides: [Slide] = []
+    var slides: [Slide]?
 
     var coverImageData: Data?
     /// The original topic / source text the user provided.
@@ -36,7 +37,12 @@ final class Deck {
     /// Slides sorted by their stored index (SwiftData relationships are
     /// unordered).
     var orderedSlides: [Slide] {
-        slides.sorted { $0.index < $1.index }
+        (slides ?? []).sorted { $0.index < $1.index }
+    }
+
+    func addSlide(_ slide: Slide) {
+        if slides == nil { slides = [] }
+        slides?.append(slide)
     }
 
     func touch() {

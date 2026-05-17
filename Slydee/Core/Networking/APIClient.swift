@@ -16,6 +16,30 @@ nonisolated enum APIClient {
         }
     }
 
+    static func getJSON(url: URL, headers: [String: String] = [:]) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 30
+        for (field, value) in headers {
+            request.setValue(value, forHTTPHeaderField: field)
+        }
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw APIError.transport(error.localizedDescription)
+        }
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.transport("No HTTP response.")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let snippet = String(data: data.prefix(400), encoding: .utf8) ?? ""
+            throw APIError.http(http.statusCode, snippet)
+        }
+        return data
+    }
+
     static func postJSON(
         url: URL,
         headers: [String: String],

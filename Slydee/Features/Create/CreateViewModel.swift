@@ -30,7 +30,7 @@ final class CreateViewModel {
         }
 
         /// Search is disabled in Phase 1 (per spec).
-        var isEnabled: Bool { self != .search }
+        var isEnabled: Bool { true }
     }
 
     var step: Step = .input
@@ -41,6 +41,13 @@ final class CreateViewModel {
     var importedLabel = ""
     var isExtracting = false
     var inputError: String?
+
+    // Web search (Phase 3)
+    var searchQuery = ""
+    var searchResults: [WebResult] = []
+    var selectedResultIDs: Set<UUID> = []
+    var isSearching = false
+    var searchError: String?
 
     var language: AppLanguage = .english
     var slideCount = 8
@@ -73,8 +80,45 @@ final class CreateViewModel {
     var sourceText: String {
         switch inputMode {
         case .topic: topicText
-        case .file, .image: importedText
-        case .search: ""
+        case .file, .image, .search: importedText
+        }
+    }
+
+    var hasSelectedResults: Bool { !selectedResultIDs.isEmpty }
+
+    func toggleResult(_ result: WebResult) {
+        if selectedResultIDs.contains(result.id) {
+            selectedResultIDs.remove(result.id)
+        } else {
+            selectedResultIDs.insert(result.id)
+        }
+        let chosen = searchResults.filter { selectedResultIDs.contains($0.id) }
+        importedText = chosen.map(\.asSourceText).joined(separator: "\n\n")
+        importedLabel = "\(chosen.count) web source(s)"
+    }
+
+    func runSearch() {
+        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return }
+        guard let key = KeychainStore.read(.googleKey), !key.isEmpty,
+              let cx = KeychainStore.read(.googleCX), !cx.isEmpty
+        else {
+            searchError = "Add your Google API key and Search Engine ID in Settings."
+            return
+        }
+        isSearching = true
+        searchError = nil
+        let client = GoogleSearchClient(apiKey: key, cx: cx)
+        Task {
+            do {
+                searchResults = try await client.search(query)
+                if searchResults.isEmpty { searchError = "No results." }
+            } catch {
+                searchError = (error as? LocalizedError)?.errorDescription
+                    ?? error.localizedDescription
+                searchResults = []
+            }
+            isSearching = false
         }
     }
 

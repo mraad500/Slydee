@@ -24,7 +24,7 @@ final class EditorViewModel {
 
     var selectedBlock: Block? {
         guard let id = selectedBlockID else { return nil }
-        return currentSlide?.blocks.first { $0.persistentModelID == id }
+        return currentSlide?.orderedBlocks.first { $0.persistentModelID == id }
     }
 
     func save() {
@@ -61,7 +61,7 @@ final class EditorViewModel {
             language: deck.language
         )
         slide.deck = deck
-        deck.slides.append(slide)
+        deck.addSlide(slide)
         context.insert(slide)
 
         let title = Block.text(
@@ -73,7 +73,7 @@ final class EditorViewModel {
             frame: RelativeFrame(x: 0.07, y: 0.12, width: 0.86, height: 0.2)
         )
         title.slide = slide
-        slide.blocks.append(title)
+        slide.addBlock(title)
         context.insert(title)
 
         reindex()
@@ -92,7 +92,7 @@ final class EditorViewModel {
         )
         copy.backgroundJSON = source.backgroundJSON
         copy.deck = deck
-        deck.slides.append(copy)
+        deck.addSlide(copy)
         context.insert(copy)
 
         for block in source.orderedBlocks {
@@ -107,7 +107,7 @@ final class EditorViewModel {
             )
             newBlock.animationJSON = block.animationJSON
             newBlock.slide = copy
-            copy.blocks.append(newBlock)
+            copy.addBlock(newBlock)
             context.insert(newBlock)
         }
         reindex()
@@ -137,7 +137,7 @@ final class EditorViewModel {
 
     func deleteSelectedBlock() {
         guard let block = selectedBlock, let slide = currentSlide else { return }
-        slide.blocks.removeAll { $0.persistentModelID == block.persistentModelID }
+        slide.removeBlock(block)
         context.delete(block)
         selectedBlockID = nil
         save()
@@ -153,13 +153,13 @@ final class EditorViewModel {
             type: block.type,
             frame: frame,
             content: content,
-            zIndex: (slide.blocks.map(\.zIndex).max() ?? 0) + 1,
+            zIndex: (slide.orderedBlocks.map(\.zIndex).max() ?? 0) + 1,
             rotation: block.rotation,
             opacity: block.opacity
         )
         copy.animationJSON = block.animationJSON
         copy.slide = slide
-        slide.blocks.append(copy)
+        slide.addBlock(copy)
         context.insert(copy)
         selectedBlockID = copy.persistentModelID
         save()
@@ -210,15 +210,15 @@ final class EditorViewModel {
 
     func bringSelectedToFront() {
         guard let block = selectedBlock, let slide = currentSlide else { return }
-        block.zIndex = (slide.blocks.map(\.zIndex).max() ?? 0) + 1
+        block.zIndex = (slide.orderedBlocks.map(\.zIndex).max() ?? 0) + 1
         save()
     }
 
     func addBlock(_ block: Block) {
         guard let slide = currentSlide else { return }
-        block.zIndex = (slide.blocks.map(\.zIndex).max() ?? 0) + 1
+        block.zIndex = (slide.orderedBlocks.map(\.zIndex).max() ?? 0) + 1
         block.slide = slide
-        slide.blocks.append(block)
+        slide.addBlock(block)
         context.insert(block)
         selectedBlockID = block.persistentModelID
         save()

@@ -9,6 +9,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 generationSection
+                webSearchSection
                 appearanceSection
                 aboutSection
             }
@@ -108,6 +109,48 @@ struct SettingsView: View {
                     Text(lang.displayName).tag(lang.rawValue)
                 }
             }
+        }
+    }
+
+    // MARK: Web Search
+
+    private var webSearchSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text("Google API key")
+                    .font(SlydeeFont.emphasis(FontSize.callout))
+                SecureField("AIza…", text: $vm.googleKey)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .font(SlydeeFont.mono(FontSize.callout))
+                Text("Search engine ID (cx)")
+                    .font(SlydeeFont.emphasis(FontSize.callout))
+                    .padding(.top, Spacing.xs)
+                TextField("0123…:abcd", text: $vm.googleCX)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .font(SlydeeFont.mono(FontSize.callout))
+                HStack(spacing: Spacing.md) {
+                    Button("Save") {
+                        vm.save(.googleKey)
+                        vm.save(.googleCX)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.slydeeSun)
+                    .foregroundStyle(Color.slydeeInk)
+                    Spacer()
+                    Button("Clear", role: .destructive) {
+                        vm.clear(.googleKey)
+                        vm.clear(.googleCX)
+                    }
+                }
+                .font(SlydeeFont.body(FontSize.callout))
+            }
+            .padding(.vertical, Spacing.xxs)
+        } header: {
+            Text("Web search")
+        } footer: {
+            Text("Enables the Search tab in Create. Create a Programmable Search Engine and JSON API key at Google Cloud. Stored in the Keychain.")
         }
     }
 

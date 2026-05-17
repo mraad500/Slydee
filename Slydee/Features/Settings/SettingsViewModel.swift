@@ -13,12 +13,16 @@ final class SettingsViewModel {
 
     var claudeKey = ""
     var openAIKey = ""
+    var googleKey = ""
+    var googleCX = ""
     var claudeState: KeyState = .idle
     var openAIState: KeyState = .idle
 
     func load() {
         claudeKey = KeychainStore.read(.claude) ?? ""
         openAIKey = KeychainStore.read(.openAI) ?? ""
+        googleKey = KeychainStore.read(.googleKey) ?? ""
+        googleCX = KeychainStore.read(.googleCX) ?? ""
     }
 
     func save(_ key: KeychainStore.Key) {
@@ -29,6 +33,10 @@ final class SettingsViewModel {
         case .openAI:
             KeychainStore.save(openAIKey, for: .openAI)
             openAIState = .idle
+        case .googleKey:
+            KeychainStore.save(googleKey, for: .googleKey)
+        case .googleCX:
+            KeychainStore.save(googleCX, for: .googleCX)
         }
     }
 
@@ -41,6 +49,10 @@ final class SettingsViewModel {
         case .openAI:
             openAIKey = ""
             openAIState = .idle
+        case .googleKey:
+            googleKey = ""
+        case .googleCX:
+            googleCX = ""
         }
     }
 
@@ -74,6 +86,7 @@ final class SettingsViewModel {
         switch key {
         case .claude: claudeState = state
         case .openAI: openAIState = state
+        case .googleKey, .googleCX: break
         }
     }
 
@@ -110,6 +123,8 @@ final class SettingsViewModel {
                 ],
                 body: body
             )
+            return true
+        case .googleKey, .googleCX:
             return true
         }
     }

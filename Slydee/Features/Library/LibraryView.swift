@@ -65,8 +65,12 @@ struct LibraryView: View {
         } label: { Label("Duplicate", systemImage: "doc.on.doc") }
 
         Button {
-            exportPDF(deck)
-        } label: { Label("Export PDF", systemImage: "square.and.arrow.up") }
+            export(deck) { await PDFExporter.export(deck: deck) }
+        } label: { Label("Export PDF", systemImage: "doc.richtext") }
+
+        Button {
+            export(deck) { await PPTXExporter.export(deck: deck) }
+        } label: { Label("Export PPTX", systemImage: "rectangle.on.rectangle") }
 
         Button(role: .destructive) {
             context.delete(deck)
@@ -124,7 +128,7 @@ struct LibraryView: View {
             )
             newSlide.backgroundJSON = slide.backgroundJSON
             newSlide.deck = copy
-            copy.slides.append(newSlide)
+            copy.addSlide(newSlide)
             context.insert(newSlide)
 
             for block in slide.orderedBlocks {
@@ -138,18 +142,18 @@ struct LibraryView: View {
                     opacity: block.opacity
                 )
                 newBlock.slide = newSlide
-                newSlide.blocks.append(newBlock)
+                newSlide.addBlock(newBlock)
                 context.insert(newBlock)
             }
         }
         try? context.save()
     }
 
-    private func exportPDF(_ deck: Deck) {
+    private func export(_ deck: Deck, _ make: @escaping () async -> URL?) {
         exportingID = deck.persistentModelID
         Task {
             defer { exportingID = nil }
-            if let url = await PDFExporter.export(deck: deck) {
+            if let url = await make() {
                 share = SharePayload(url: url)
             }
         }

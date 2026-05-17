@@ -7,6 +7,8 @@ nonisolated enum KeychainStore {
     enum Key: String, CaseIterable {
         case claude = "com.slydee.apikey.claude"
         case openAI = "com.slydee.apikey.openai"
+        case googleKey = "com.slydee.apikey.google"
+        case googleCX = "com.slydee.apikey.googlecx"
     }
 
     @discardableResult

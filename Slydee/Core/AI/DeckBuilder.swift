@@ -32,12 +32,12 @@ enum DeckBuilder {
                 notes: gen.speakerNotes
             )
             slide.deck = deck
-            deck.slides.append(slide)
+            deck.addSlide(slide)
             context.insert(slide)
 
             for block in makeBlocks(for: gen, deck: deck, theme: template.theme) {
                 block.slide = slide
-                slide.blocks.append(block)
+                slide.addBlock(block)
                 context.insert(block)
             }
         }

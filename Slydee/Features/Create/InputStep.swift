@@ -16,7 +16,7 @@ struct InputStep: View {
                 case .topic: topicInput
                 case .file: fileInput
                 case .image: imageInput
-                case .search: searchDisabled
+                case .search: SearchInputView(vm: vm)
                 }
 
                 if let error = vm.inputError {
@@ -184,16 +184,4 @@ struct InputStep: View {
         }
     }
 
-    private var searchDisabled: some View {
-        VStack(spacing: Spacing.sm) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 32))
-                .foregroundStyle(Color.slydeeInkMuted)
-            Text("Web search arrives in a later update.")
-                .font(SlydeeFont.body(FontSize.body))
-                .foregroundStyle(Color.slydeeInkMuted)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.xxl)
-    }
 }

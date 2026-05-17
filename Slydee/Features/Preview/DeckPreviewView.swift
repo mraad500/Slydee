@@ -90,17 +90,25 @@ struct DeckPreviewView: View {
 
             Spacer()
 
-            Button {
-                exportAndShare()
-            } label: {
-                if exporting {
-                    ProgressView()
-                } else {
+            if exporting {
+                ProgressView()
+            } else {
+                Menu {
+                    Button {
+                        export { await PDFExporter.export(deck: deck) }
+                    } label: {
+                        Label("PDF", systemImage: "doc.richtext")
+                    }
+                    Button {
+                        export { await PPTXExporter.export(deck: deck) }
+                    } label: {
+                        Label("PowerPoint (.pptx)", systemImage: "rectangle.on.rectangle")
+                    }
+                } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
                 }
             }
-            .disabled(exporting)
 
             Button {
                 presenting = true
@@ -119,11 +127,11 @@ struct DeckPreviewView: View {
         .padding(.bottom, Spacing.sm)
     }
 
-    private func exportAndShare() {
+    private func export(_ make: @escaping () async -> URL?) {
         exporting = true
         Task {
             defer { exporting = false }
-            if let url = await PDFExporter.export(deck: deck) {
+            if let url = await make() {
                 share = SharePayload(url: url)
             }
         }

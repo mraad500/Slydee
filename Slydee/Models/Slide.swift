@@ -15,8 +15,9 @@ final class Slide {
     /// primitive). Empty string falls back to the deck theme.
     var backgroundJSON: String = ""
 
+    // Optional to-many is required for CloudKit sync.
     @Relationship(deleteRule: .cascade, inverse: \Block.slide)
-    var blocks: [Block] = []
+    var blocks: [Block]?
 
     init(
         index: Int,
@@ -40,6 +41,15 @@ final class Slide {
     }
 
     var orderedBlocks: [Block] {
-        blocks.sorted { $0.zIndex < $1.zIndex }
+        (blocks ?? []).sorted { $0.zIndex < $1.zIndex }
+    }
+
+    func addBlock(_ block: Block) {
+        if blocks == nil { blocks = [] }
+        blocks?.append(block)
+    }
+
+    func removeBlock(_ block: Block) {
+        blocks?.removeAll { $0.persistentModelID == block.persistentModelID }
     }
 }
