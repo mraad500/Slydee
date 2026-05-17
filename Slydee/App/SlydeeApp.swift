@@ -7,6 +7,6 @@ struct SlydeeApp: App {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [Deck.self, Slide.self, Block.self])
+        .modelContainer(for: [Deck.self, Slide.self, Block.self], isUndoEnabled: true)
     }
 }

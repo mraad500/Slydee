@@ -7,6 +7,7 @@ struct DeckPreviewView: View {
     @State private var index = 0
     @State private var zoom: CGFloat = 1
     @State private var presenting = false
+    @State private var editing = false
     @State private var share: SharePayload?
     @State private var exporting = false
 
@@ -50,8 +51,20 @@ struct DeckPreviewView: View {
         }
         .navigationTitle(deck.title.isEmpty ? "Deck" : deck.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    editing = true
+                } label: {
+                    Label("Edit", systemImage: "slider.horizontal.3")
+                }
+            }
+        }
         .fullScreenCover(isPresented: $presenting) {
             PresentationModeView(deck: deck, startIndex: index)
+        }
+        .fullScreenCover(isPresented: $editing) {
+            EditorView(deck: deck)
         }
         .sheet(item: $share) { payload in
             ShareSheet(items: [payload.url])
@@ -143,7 +156,7 @@ private struct PresentationModeView: View {
                 Color.black.ignoresSafeArea()
                 TabView(selection: $index) {
                     ForEach(Array(deck.orderedSlides.enumerated()), id: \.element.id) { offset, slide in
-                        SlideCanvas(slide: slide, theme: deck.theme, size: canvas)
+                        SlideCanvas(slide: slide, theme: deck.theme, size: canvas, animated: true)
                             .frame(maxHeight: .infinity)
                             .tag(offset)
                     }

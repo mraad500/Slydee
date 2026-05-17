@@ -110,7 +110,7 @@ nonisolated enum TextAlign: String, Codable, Sendable {
 }
 
 /// Codable font weight (SwiftUI's `Font.Weight` isn't `Codable`).
-nonisolated enum SlydeeFontWeight: String, Codable, Sendable {
+nonisolated enum SlydeeFontWeight: String, Codable, Sendable, CaseIterable {
     case regular
     case medium
     case semibold

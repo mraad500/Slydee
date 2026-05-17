@@ -43,6 +43,11 @@ final class Block {
         get { JSONCoding.decode(BlockContent.self, from: contentJSON) }
         set { if let newValue { contentJSON = JSONCoding.encode(newValue) } }
     }
+
+    var animation: BlockAnimation? {
+        get { animationJSON.flatMap { JSONCoding.decode(BlockAnimation.self, from: $0) } }
+        set { animationJSON = newValue.map { JSONCoding.encode($0) } }
+    }
 }
 
 // MARK: - Convenience factories

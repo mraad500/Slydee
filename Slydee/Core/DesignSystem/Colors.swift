@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 nonisolated extension Color {
     // MARK: Brand
@@ -62,5 +63,15 @@ nonisolated extension Color {
             blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+
+    /// `RRGGBB` hex for persistence (drops alpha; blocks store opacity
+    /// separately). Used by the editor's color pickers.
+    var hexString: String {
+        let resolved = UIColor(self).cgColor.components ?? [0, 0, 0, 1]
+        let r = Int((resolved.first ?? 0) * 255)
+        let g = Int((resolved.count > 1 ? resolved[1] : 0) * 255)
+        let b = Int((resolved.count > 2 ? resolved[2] : 0) * 255)
+        return String(format: "%02X%02X%02X", max(0, r), max(0, g), max(0, b))
     }
 }
