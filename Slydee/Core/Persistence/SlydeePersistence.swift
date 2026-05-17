@@ -8,7 +8,7 @@ import SwiftData
 @MainActor
 enum SlydeePersistence {
     static func makeContainer() -> ModelContainer {
-        let schema = Schema([Deck.self, Slide.self, Block.self])
+        let schema = Schema([Deck.self, Slide.self, Block.self, ResearchDocument.self])
 
         let cloud = ModelConfiguration(
             schema: schema,

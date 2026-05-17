@@ -4,6 +4,7 @@ import SwiftUI
 struct HomeView: View {
     @Query(sort: \Deck.updatedAt, order: .reverse) private var decks: [Deck]
     @State private var showCreate = false
+    @State private var showResearch = false
     @State private var createTemplate: Template?
 
     private var recentDecks: [Deck] { Array(decks.prefix(10)) }
@@ -13,7 +14,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.xl) {
                     header
-                    newButton
+                    entryTiles
                     recentSection
                     templatesSection
                 }
@@ -29,7 +30,62 @@ struct HomeView: View {
             .fullScreenCover(isPresented: $showCreate) {
                 CreateView(preselectedTemplate: createTemplate)
             }
+            .fullScreenCover(isPresented: $showResearch) {
+                ResearchFlowView()
+            }
         }
+    }
+
+    /// Two side-by-side glass entry tiles: presentations and research.
+    private var entryTiles: some View {
+        HStack(spacing: Spacing.md) {
+            entryTile(
+                title: "New Presentation",
+                subtitle: "Slides in seconds",
+                systemImage: "rectangle.on.rectangle.angled",
+                tint: Color.slydeeSun
+            ) {
+                createTemplate = nil
+                showCreate = true
+            }
+            entryTile(
+                title: "New Research",
+                subtitle: "Papers & reports",
+                systemImage: "doc.text.magnifyingglass",
+                tint: Color.slydeeInk
+            ) {
+                showResearch = true
+            }
+        }
+    }
+
+    private func entryTile(
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey,
+        systemImage: String,
+        tint: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(tint)
+                Spacer(minLength: Spacing.sm)
+                Text(title)
+                    .font(SlydeeFont.heading(FontSize.callout))
+                    .foregroundStyle(Color.slydeeInk)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                Text(subtitle)
+                    .font(SlydeeFont.body(FontSize.caption))
+                    .foregroundStyle(Color.slydeeInkMuted)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+            .glassCard(padding: Spacing.md)
+        }
+        .buttonStyle(SpringButtonStyle())
     }
 
     private var header: some View {
@@ -46,13 +102,6 @@ struct HomeView: View {
             Spacer()
         }
         .padding(.top, Spacing.lg)
-    }
-
-    private var newButton: some View {
-        SlydeeButton("New Presentation", systemImage: "plus", fullWidth: true) {
-            createTemplate = nil
-            showCreate = true
-        }
     }
 
     @ViewBuilder
@@ -127,5 +176,8 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
-        .modelContainer(for: [Deck.self, Slide.self, Block.self], inMemory: true)
+        .modelContainer(
+            for: [Deck.self, Slide.self, Block.self, ResearchDocument.self],
+            inMemory: true
+        )
 }

@@ -3,6 +3,8 @@ import SwiftUI
 
 struct RootView: View {
     @AppStorage("settings.uiLanguage") private var uiLanguageRaw = UILanguage.system.rawValue
+    @AppStorage("hasOnboardedV1") private var hasOnboarded = false
+    @State private var showOnboarding = false
 
     private var uiLanguage: UILanguage {
         UILanguage(rawValue: uiLanguageRaw) ?? .system
@@ -22,6 +24,13 @@ struct RootView: View {
         }
         .tint(.slydeeInk)
         .modifier(LocalePreference(language: uiLanguage))
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView {
+                hasOnboarded = true
+                showOnboarding = false
+            }
+        }
+        .onAppear { showOnboarding = !hasOnboarded }
     }
 }
 
@@ -46,5 +55,8 @@ private struct LocalePreference: ViewModifier {
 
 #Preview {
     RootView()
-        .modelContainer(for: [Deck.self, Slide.self, Block.self], inMemory: true)
+        .modelContainer(
+            for: [Deck.self, Slide.self, Block.self, ResearchDocument.self],
+            inMemory: true
+        )
 }

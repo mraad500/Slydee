@@ -4,10 +4,13 @@ import SwiftUI
 struct LibraryView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Deck.updatedAt, order: .reverse) private var decks: [Deck]
+    @Query(sort: \ResearchDocument.updatedAt, order: .reverse) private var research: [ResearchDocument]
 
     @State private var searchText = ""
     @State private var renameTarget: Deck?
     @State private var renameText = ""
+    @State private var researchRenameTarget: ResearchDocument?
+    @State private var researchRenameText = ""
     @State private var share: SharePayload?
     @State private var exportingID: PersistentIdentifier?
 
@@ -20,10 +23,20 @@ struct LibraryView: View {
         }
     }
 
+    private var filteredResearch: [ResearchDocument] {
+        guard !searchText.isEmpty else { return research }
+        return research.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText)
+                || $0.topic.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    private var isEmpty: Bool { decks.isEmpty && research.isEmpty }
+
     var body: some View {
         NavigationStack {
             Group {
-                if decks.isEmpty {
+                if isEmpty {
                     emptyState
                 } else {
                     ScrollView {
@@ -35,19 +48,32 @@ struct LibraryView: View {
                                 .buttonStyle(.plain)
                                 .contextMenu { menu(for: deck) }
                             }
+                            ForEach(filteredResearch) { document in
+                                NavigationLink(value: document) {
+                                    ResearchCard(document: document)
+                                }
+                                .buttonStyle(.plain)
+                                .contextMenu { menu(forResearch: document) }
+                            }
                         }
                         .padding(Spacing.lg)
                     }
-                    .searchable(text: $searchText, prompt: "Search decks")
+                    .searchable(text: $searchText, prompt: "Search library")
                 }
             }
             .background(Color.slydeeCream)
             .navigationTitle("Library")
             .navigationDestination(for: Deck.self) { DeckPreviewView(deck: $0) }
+            .navigationDestination(for: ResearchDocument.self) { ResearchReaderView(document: $0) }
             .alert("Rename deck", isPresented: renameBinding) {
                 TextField("Title", text: $renameText)
                 Button("Cancel", role: .cancel) {}
                 Button("Save") { commitRename() }
+            }
+            .alert("Rename research", isPresented: researchRenameBinding) {
+                TextField("Title", text: $researchRenameText)
+                Button("Cancel", role: .cancel) {}
+                Button("Save") { commitResearchRename() }
             }
             .sheet(item: $share) { ShareSheet(items: [$0.url]) }
         }
@@ -78,13 +104,36 @@ struct LibraryView: View {
         } label: { Label("Delete", systemImage: "trash") }
     }
 
+    @ViewBuilder
+    private func menu(forResearch document: ResearchDocument) -> some View {
+        Button {
+            researchRenameText = document.title
+            researchRenameTarget = document
+        } label: { Label("Rename", systemImage: "pencil") }
+
+        Button {
+            exportingID = document.persistentModelID
+            Task {
+                defer { exportingID = nil }
+                if let url = await ResearchPDFExporter.export(document) {
+                    share = SharePayload(url: url)
+                }
+            }
+        } label: { Label("Export PDF", systemImage: "doc.richtext") }
+
+        Button(role: .destructive) {
+            context.delete(document)
+            try? context.save()
+        } label: { Label("Delete", systemImage: "trash") }
+    }
+
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
             MascotView(size: 96)
-            Text("No decks yet")
+            Text("Nothing here yet")
                 .font(SlydeeFont.heading(FontSize.heading))
                 .foregroundStyle(Color.slydeeInk)
-            Text("Create one from the Home tab.")
+            Text("Make a presentation or research from the Home tab.")
                 .font(SlydeeFont.body(FontSize.callout))
                 .foregroundStyle(Color.slydeeInkMuted)
         }
@@ -108,6 +157,24 @@ struct LibraryView: View {
             try? context.save()
         }
         renameTarget = nil
+    }
+
+    private var researchRenameBinding: Binding<Bool> {
+        Binding(
+            get: { researchRenameTarget != nil },
+            set: { if !$0 { researchRenameTarget = nil } }
+        )
+    }
+
+    private func commitResearchRename() {
+        guard let document = researchRenameTarget else { return }
+        let trimmed = researchRenameText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            document.title = trimmed
+            document.touch()
+            try? context.save()
+        }
+        researchRenameTarget = nil
     }
 
     private func duplicate(_ deck: Deck) {
@@ -162,5 +229,8 @@ struct LibraryView: View {
 
 #Preview {
     LibraryView()
-        .modelContainer(for: [Deck.self, Slide.self, Block.self], inMemory: true)
+        .modelContainer(
+            for: [Deck.self, Slide.self, Block.self, ResearchDocument.self],
+            inMemory: true
+        )
 }
